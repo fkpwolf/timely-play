@@ -7,3 +7,15 @@ edition = "2021"
 
 [dependencies]
 timely="*"
+
+[[bin]]
+name = "simple"
+path = "src/simple.rs"
+
+[[bin]]
+name = "merge"
+path = "src/merge.rs"
+
+[[bin]]
+name = "agg"
+path = "src/agg.rs"
