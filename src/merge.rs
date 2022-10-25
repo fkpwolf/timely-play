@@ -24,6 +24,18 @@ fn main() {
                     |key| *key as u64,
                 )
                 .inspect(move |x| println!("worker {}:\thello {}|{}", index, x.0, x.1))
+                .probe_with(&mut probe)
+                .exchange(|_x| 1) // send to worker 1
+                .state_machine(
+                    // hard code type "&mut u64"
+                    |_key, val, agg: &mut u64| {
+                        println!("k:v {}:{}, agg {}", *_key, val, agg);
+                        *agg += val;
+                        (false, Some((*_key, *agg)))
+                    },
+                    |_key| 3, // put in one partition. But it is worker 3
+                )
+                .inspect(move |x| println!("worker {}:\tsum {}|{}", index, x.0, x.1))
                 .probe_with(&mut probe);
         });
 
@@ -35,7 +47,6 @@ fn main() {
             input.advance_to(round + 1);
             while probe.less_than(input.time()) {
                 worker.step(); // to make sure data has been consumed
-                println!("step {}!", round);
             }
         }
     })
